@@ -28,17 +28,10 @@ public class OrderService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public boolean createOrder(CreateOrderRequest createOrderRequest) {
-        List<String> productIds = createOrderRequest.getProductOrder().stream().map(item -> {
-            String currentItemId = item.getProductId();
-            return currentItemId;
-        }).collect(Collectors.toList());
-        Map<String, ProductModel> productModels = productRepository.getListProductIds(productIds).stream().collect(Collectors.toMap((item) -> {
-            return item.getId();
-        }, (item) -> {
-            return item;
-        }));
+    @Autowired
+    private OrderService orderService;
 
+    public Double productCost(CreateOrderRequest createOrderRequest, Map<String, ProductModel> productModels) {
         Double cost = createOrderRequest.getProductOrder().stream().map(item -> {
             String currentItemId = item.getProductId();
             ProductModel productModel = productModels.get(currentItemId);
@@ -51,9 +44,11 @@ public class OrderService {
         }).reduce(0.0, (a, b) -> {
             return a + b;
         });
+        return cost;
+    }
 
-        UUID transactionId = UUID.randomUUID();
-        List<OrderModel> createdOrders = createOrderRequest.getProductOrder().stream().map(item -> {
+    public List<OrderModel> createOrderModel(CreateOrderRequest createOrderRequest, String transactionId) {
+        return createOrderRequest.getProductOrder().stream().map(item -> {
             String currentItemId = item.getProductId();
             OrderModel orderModel = OrderModel.builder()
                     .order_id(UUID.randomUUID().toString())
@@ -68,30 +63,36 @@ public class OrderService {
                     .build();
             return orderModel;
         }).collect(Collectors.toList());
-        TransactionModel transactionModel = TransactionModel.builder()
-                .transaction_id(transactionId.toString())
+    }
+
+    public TransactionModel createTransactionModel(CreateOrderRequest createOrderRequest, String transactionId, Double cost) {
+        return TransactionModel.builder()
+                .transaction_id(transactionId)
                 .user_id(createOrderRequest.getUserId())
                 .cost(cost)
                 .status("PLACED_ORDER")
                 .created_at(System.currentTimeMillis())
                 .updated_at(System.currentTimeMillis())
                 .build();
-        transactionRepository.createOrder(transactionModel);
-        return orderRepository.createOrder(createdOrders);
     }
 
-    public Double productCost(CreateOrderRequest createOrderRequest, ProductModel productModels) {
-        Double cost = createOrderRequest.getProductOrder().stream().map(item -> {
+    public boolean createOrder(CreateOrderRequest createOrderRequest) {
+        List<String> productIds = createOrderRequest.getProductOrder().stream().map(item -> {
             String currentItemId = item.getProductId();
-            ProductModel productModel = productModels.get(currentItemId);
-            if (item.getQuantity() > productModel.availableCount) {
-                throw new RuntimeException("Wrong quantity requested");
-            } else {
-                productRepository.updateProductQuantity(currentItemId, productModel.availableCount - item.getQuantity());
-                return item.getQuantity() * productModel.cost;
-            }
-        }).reduce(0.0, (a, b) -> {
-            return a + b;
-        });
+            return currentItemId;
+        }).collect(Collectors.toList());
+
+        Map<String, ProductModel> productModels = productRepository.getListProductIds(productIds).stream().collect(Collectors.toMap((item) -> {
+            return item.getId();
+        }, (item) -> {
+            return item;
+        }));
+
+        Double cost = orderService.productCost(createOrderRequest, productModels);
+        UUID transactionId = UUID.randomUUID();
+        List<OrderModel> createdOrders = orderService.createOrderModel(createOrderRequest, transactionId.toString());
+        TransactionModel transactionModel = orderService.createTransactionModel(createOrderRequest, transactionId.toString(), cost);
+        transactionRepository.createOrder(transactionModel);
+        return orderRepository.createOrder(createdOrders);
     }
 }
