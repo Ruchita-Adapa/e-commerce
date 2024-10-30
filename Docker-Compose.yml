@@ -1,0 +1,11 @@
+version: '3.0'
+services:
+  postgres:
+    container_name: e-commerce
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=Pass2020!
+    ports:
+      - "5433:5432"
+    volumes:
+      - "${HOME}/postgres-data/:/var/lib/postgresql/data"

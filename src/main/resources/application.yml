@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: e-commerce
+
+custom:
+  postgres:
+    host: localhost
+    port: 5433
+    database: postgres
+    schema: ecommerce
+    username: postgres
+    password: Pass2020!
+
+server:
+  port: 8081
