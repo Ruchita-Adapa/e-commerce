@@ -2,12 +2,16 @@ package com.app.e_commerce.service;
 
 import com.app.e_commerce.dto.request.CreateProductRequest;
 import com.app.e_commerce.dto.response.ProductDto;
+import com.app.e_commerce.dto.response.UserDto;
 import com.app.e_commerce.models.ProductModel;
 import com.app.e_commerce.models.UserModel;
 import com.app.e_commerce.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -52,6 +56,18 @@ public class ProductService {
                 .updatedAt(productData.getUpdatedAt())
                 .build();
 
+    }
+
+    public List<ProductDto> getProducts(int limit, int offset) {
+        List<ProductModel> productData = productRepository.getProducts(limit, offset);
+        return productData.stream().map(
+                products -> ProductDto.builder()
+                        .name(products.getName())
+                        .cost(products.getCost())
+                        .availableCount(products.getAvailableCount())
+                        .createdAt(products.getCreatedAt())
+                        .updatedAt(products.getUpdatedAt())
+                        .build()).collect(Collectors.toList());
     }
 
 }

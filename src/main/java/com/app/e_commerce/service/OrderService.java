@@ -1,7 +1,10 @@
 package com.app.e_commerce.service;
 
 import com.app.e_commerce.dto.request.CreateOrderRequest;
+import com.app.e_commerce.dto.response.OrderDto;
+import com.app.e_commerce.dto.response.OrderProductDto;
 import com.app.e_commerce.models.OrderModel;
+import com.app.e_commerce.models.OrderProductModel;
 import com.app.e_commerce.models.ProductModel;
 import com.app.e_commerce.models.TransactionModel;
 import com.app.e_commerce.repository.OrderRepository;
@@ -9,8 +12,8 @@ import com.app.e_commerce.repository.ProductRepository;
 import com.app.e_commerce.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,9 +30,6 @@ public class OrderService {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
-    @Autowired
-    private OrderService orderService;
 
     public Double productCost(CreateOrderRequest createOrderRequest, Map<String, ProductModel> productModels) {
         Double cost = createOrderRequest.getProductOrder().stream().map(item -> {
@@ -67,15 +67,16 @@ public class OrderService {
 
     public TransactionModel createTransactionModel(CreateOrderRequest createOrderRequest, String transactionId, Double cost) {
         return TransactionModel.builder()
-                .transaction_id(transactionId)
-                .user_id(createOrderRequest.getUserId())
+                .transactionId(transactionId)
+                .userId(createOrderRequest.getUserId())
                 .cost(cost)
                 .status("PLACED_ORDER")
-                .created_at(System.currentTimeMillis())
-                .updated_at(System.currentTimeMillis())
+                .createdAt(System.currentTimeMillis())
+                .updatedAt(System.currentTimeMillis())
                 .build();
     }
 
+    @Transactional
     public boolean createOrder(CreateOrderRequest createOrderRequest) {
         List<String> productIds = createOrderRequest.getProductOrder().stream().map(item -> {
             String currentItemId = item.getProductId();
@@ -88,11 +89,28 @@ public class OrderService {
             return item;
         }));
 
-        Double cost = orderService.productCost(createOrderRequest, productModels);
+        Double cost = this.productCost(createOrderRequest, productModels);
         UUID transactionId = UUID.randomUUID();
-        List<OrderModel> createdOrders = orderService.createOrderModel(createOrderRequest, transactionId.toString());
-        TransactionModel transactionModel = orderService.createTransactionModel(createOrderRequest, transactionId.toString(), cost);
+        List<OrderModel> createdOrders = this.createOrderModel(createOrderRequest, transactionId.toString());
+        TransactionModel transactionModel = this.createTransactionModel(createOrderRequest, transactionId.toString(), cost);
         transactionRepository.createOrder(transactionModel);
         return orderRepository.createOrder(createdOrders);
+    }
+
+
+    public List<OrderProductDto> getOrdersByTransactionId(String transactionId) {
+        List<OrderProductModel> orderProductModels = orderRepository.getOrdersByTransactionId(transactionId);
+        return orderProductModels.stream().map((orderProduct) -> {
+            return OrderProductDto.builder()
+                    .productId(orderProduct.getProductId())
+                    .productName(orderProduct.getProductName())
+                    .cost(orderProduct.getCost())
+                    .orderId(orderProduct.getOrderId())
+                    .placedFrom(orderProduct.getPlacedFrom())
+                    .quantity(orderProduct.getQuantity())
+                    .createdAt(orderProduct.getCreatedAt())
+                    .updatedAt(orderProduct.getUpdatedAt())
+                    .build();
+        }).collect(Collectors.toList());
     }
 }

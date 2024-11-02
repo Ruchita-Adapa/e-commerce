@@ -1,6 +1,7 @@
 package com.app.e_commerce.repository;
 
 import com.app.e_commerce.models.ProductModel;
+import com.app.e_commerce.models.UserModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -113,5 +114,26 @@ public class ProductRepository {
                 .addValue("quanity", quanity);
 
         return namedParameterJdbcTemplate.update(query, params) > 0;
+    }
+
+    public List<ProductModel> getProducts(int limit, int offset) {
+        String query = """
+                SELECT * from product
+                ORDER BY id LIMIT :limit OFFSET :offset""";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("limit", limit)
+                .addValue("offset", offset);
+
+        return namedParameterJdbcTemplate.query(query, params, (rs, rowNum) -> {
+            return ProductModel.builder()
+                    .id(rs.getString("ID"))
+                    .name(rs.getString("name"))
+                    .cost(rs.getDouble("cost"))
+                    .availableCount(rs.getInt("available_count"))
+                    .createdAt(rs.getLong("created_at"))
+                    .updatedAt(rs.getLong("updated_at"))
+                    .build();
+        });
     }
 }

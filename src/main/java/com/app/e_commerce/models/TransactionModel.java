@@ -6,10 +6,10 @@ import lombok.Data;
 @Builder
 @Data
 public class TransactionModel {
-    public String transaction_id;
-    public String user_id;
+    public String transactionId;
+    public String userId;
     public Double cost;
     public String status;
-    public Long created_at;
-    public Long updated_at;
+    public Long createdAt;
+    public Long updatedAt;
 }
