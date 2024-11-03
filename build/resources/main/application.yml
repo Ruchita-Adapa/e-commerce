@@ -13,3 +13,8 @@ custom:
 
 server:
   port: 8081
+
+custom-security:
+  jwt:
+    secret-key: "qwertyuiopasdfghjklzxcvbnm"
+    expiration-time: 28800000

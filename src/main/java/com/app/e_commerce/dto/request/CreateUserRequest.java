@@ -16,4 +16,7 @@ public class CreateUserRequest {
 
     @NotBlank(message = "Address is required")
     private String address;
+
+    @NotBlank(message = "Password is required")
+    private String password;
 }

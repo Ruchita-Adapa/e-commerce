@@ -1,5 +1,6 @@
 package com.app.e_commerce.repository;
 
+import com.app.e_commerce.dto.request.LoginUserRequest;
 import com.app.e_commerce.models.UserModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -19,14 +20,15 @@ public class UserRepository {
 
     public boolean createUser(UserModel createUserRequest) {
         String query = """
-               INSERT INTO users (ID, name, email, address)
-               VALUES (:id, :name, :email, :address)
+               INSERT INTO users (ID, name, email, address, password)
+               VALUES (:id, :name, :email, :address, :password)
                """;
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", createUserRequest.getId())
                 .addValue("name", createUserRequest.getName())
                 .addValue("email", createUserRequest.getEmail())
-                .addValue("address", createUserRequest.getAddress());
+                .addValue("address", createUserRequest.getAddress())
+                .addValue("password", createUserRequest.getPassword());
         int rowsAffected = namedParameterJdbcTemplate.update(query, params);
         return rowsAffected > 0;
     }
@@ -99,4 +101,22 @@ public class UserRepository {
         return rowsAffected > 0;
     }
 
+    public UserModel getUserInfoByEmail(LoginUserRequest loginUserRequest) {
+        String query = """
+                SELECT * FROM users
+                WHERE email = :email AND password = :password
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("email", loginUserRequest.getEmail())
+                .addValue("password", loginUserRequest.getPassword());
+
+        return namedParameterJdbcTemplate.queryForObject(query, params, (rs, rowNum) -> {
+            return UserModel.builder()
+                    .id(rs.getString("ID"))
+                    .name(rs.getString("name"))
+                    .email(rs.getString("email"))
+                    .address(rs.getString("address")).build();
+        });
+    }
 }

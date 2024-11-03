@@ -1,5 +1,6 @@
 package com.app.e_commerce.controller;
 
+import com.app.e_commerce.dto.request.LoginUserRequest;
 import com.app.e_commerce.dto.response.UserDto;
 import com.app.e_commerce.models.UserModel;
 import com.app.e_commerce.dto.request.CreateUserRequest;
@@ -38,5 +39,10 @@ public class UserController {
     @DeleteMapping("/users/{id}")
     public boolean deleteUser(@PathVariable("id") String userId) {
         return userService.deleteUser(userId);
+    }
+
+    @PostMapping("/user/login")
+    public String login(@RequestBody LoginUserRequest loginUserRequest) {
+        return userService.login(loginUserRequest);
     }
 }
