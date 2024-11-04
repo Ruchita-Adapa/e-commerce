@@ -41,8 +41,10 @@ public class UserController {
         return userService.deleteUser(userId);
     }
 
-    @PostMapping("/user/login")
-    public String login(@RequestBody LoginUserRequest loginUserRequest) {
+
+    @PostMapping("/test")
+    public String test(@RequestBody LoginUserRequest loginUserRequest) {
+        System.out.println("User Entered");
         return userService.login(loginUserRequest);
     }
 }
