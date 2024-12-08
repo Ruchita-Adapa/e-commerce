@@ -1,22 +1,15 @@
 spring:
   application:
     name: e-commerce
-  profiles:
-    active: qa
 
 custom:
   postgres:
     host: localhost
     port: 5433
     database: postgres
-    schema: ecommerce
+    schema: ecommerce-prod
     username: postgres
     password: Pass2020!
 
 server:
   port: 8081
-
-custom-security:
-  jwt:
-    secret-key: "qwertyuiopasdfghjklzxcvbnm"
-    expiration-time: 28800000
