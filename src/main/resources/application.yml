@@ -3,6 +3,8 @@ spring:
     name: e-commerce
   profiles:
     active: qa
+  config:
+    import: "optional:configserver:http://localhost:8071/"
 
 custom:
   postgres:

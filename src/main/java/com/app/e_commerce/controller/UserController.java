@@ -6,6 +6,7 @@ import com.app.e_commerce.models.UserModel;
 import com.app.e_commerce.dto.request.CreateUserRequest;
 import com.app.e_commerce.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,10 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Value("${custom.server.version}")
+    String version;
+
     @PostMapping
     public boolean createUser(@RequestBody CreateUserRequest createUserRequest) {
         return userService.createUser(createUserRequest);
@@ -46,5 +51,10 @@ public class UserController {
     public String test(@RequestBody LoginUserRequest loginUserRequest) {
         System.out.println("User Entered");
         return userService.login(loginUserRequest);
+    }
+
+    @GetMapping("/hi/called")
+    public String Hi() {
+        return version;
     }
 }
